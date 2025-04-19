@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: nginx_reverse_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - jobtrackingapp
+    restart: always
+
+  jobtrackingapp:
+    build: .
+    container_name: jobtrackingapp
+    expose:
+      - "80"
+    depends_on:
+      - postgres
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=postgres;Database=jobtracking;User Id=yigit;Password=123456;
+    restart: always
+    volumes:
+      - ./src/JobTracking/wwwroot:/app/wwwroot
+
+  postgres:
+    image: postgres:15
+    container_name: jobtrackingdb
+    environment:
+      POSTGRES_DB: jobtracking
+      POSTGRES_USER: yigit
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: always
+
+volumes:
+  postgres-data:
